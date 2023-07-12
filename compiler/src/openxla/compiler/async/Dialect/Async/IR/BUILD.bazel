@@ -1,0 +1,106 @@
+# Copyright 2023 The OpenXLA Authors
+#
+# Licensed under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+load("@iree_core//build_tools/bazel:build_defs.oss.bzl", "iree_cc_library", "iree_gentbl_cc_library", "iree_tablegen_doc", "iree_td_library")
+load("@iree_core//build_tools/bazel:enforce_glob.bzl", "enforce_glob")
+
+
+package(
+    default_visibility = ["//visibility:public"],
+    features = ["layering_check"],
+    licenses = ["notice"],  # Apache 2.0
+)
+
+iree_td_library(
+    name = "td_files",
+    srcs = enforce_glob(
+        [
+            "AsyncDialect.td",
+            "AsyncOps.td",
+            "AsyncTypes.td",
+        ],
+        include = ["*.td"],
+    ),
+    deps = [
+        "@llvm-project//mlir:OpBaseTdFiles",
+    ],
+)
+
+cc_library(
+    name = "IR",
+    srcs = [
+        "Async.cpp",
+    ],
+    hdrs = [
+        "Async.h",
+    ],
+    textual_hdrs = [
+        "AsyncOps.h.inc",
+        "AsyncOps.cpp.inc",
+        "AsyncDialect.cpp.inc",
+        "AsyncDialect.h.inc",
+        "AsyncTypes.cpp.inc",
+        "AsyncTypes.h.inc",
+    ],
+    deps = [
+        ":AsyncOpsGen",
+        ":AsyncTypesGen",
+        "//compiler/src/openxla/compiler/async:defs",
+        "@iree_core//compiler/src/iree/compiler/Dialect/Util/IR",                
+        "@llvm-project//llvm:Support",
+        "@llvm-project//mlir:IR",
+        "@llvm-project//mlir:Support",
+        "@llvm-project//mlir:FuncDialect",
+    ],
+)
+
+iree_gentbl_cc_library(
+    name = "AsyncOpsGen",
+    tbl_outs = [
+        (
+            [
+                "--gen-dialect-decls",
+                "--dialect=async",
+            ],
+            "AsyncDialect.h.inc",
+        ),
+        (
+            [
+                "--gen-dialect-defs",
+                "--dialect=async",
+            ],
+            "AsyncDialect.cpp.inc",
+        ),
+        (
+            ["--gen-op-decls"],
+            "AsyncOps.h.inc",
+        ),
+        (
+            ["--gen-op-defs"],
+            "AsyncOps.cpp.inc",
+        ),
+    ],
+    tblgen = "@llvm-project//mlir:mlir-tblgen",
+    td_file = "AsyncOps.td",
+    deps = [":td_files"],
+)
+
+iree_gentbl_cc_library(
+    name = "AsyncTypesGen",
+    tbl_outs = [
+        (
+            ["--gen-typedef-decls"],
+            "AsyncTypes.h.inc",
+        ),
+        (
+            ["--gen-typedef-defs"],
+            "AsyncTypes.cpp.inc",
+        ),
+    ],
+    tblgen = "@llvm-project//mlir:mlir-tblgen",
+    td_file = "AsyncTypes.td",
+    deps = [":td_files"],
+)
