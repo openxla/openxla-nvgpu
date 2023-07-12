@@ -15,3 +15,7 @@ endif()
 if(OPENXLA_NVGPU_BUILD_RUNTIME_TRITON)
   add_subdirectory(openxla/runtime/nvgpu/triton)
 endif()
+
+if(OPENXLA_ASYNC_BUILD_RUNTIME)
+  add_subdirectory(openxla/runtime/async)
+endif()

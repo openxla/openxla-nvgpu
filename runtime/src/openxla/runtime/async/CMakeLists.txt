@@ -1,0 +1,89 @@
+# Copyright 2023 The IREE Authors
+#
+# Licensed under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+iree_add_all_subdirs()
+
+iree_cc_library(
+  NAME
+    defs
+  INCLUDES
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../..>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../../..>"
+  PUBLIC
+)
+
+iree_cc_library(
+  NAME
+    tsl_async_value_c_interface
+  HDRS 
+    "tsl_async_value.h"
+  SRCS 
+    "tsl_async_value.cpp"
+  DEPS
+    ::defs
+    tsl::async_value
+    absl::status
+    iree::base
+    iree::hal
+    iree::modules::hal
+)
+
+iree_cc_library(
+  NAME
+    async_runtime
+  HDRS
+    "async_runtime.h"
+    "async_runtime_util.h"
+  SRCS
+    "async_runtime.c"
+  DEPS
+    ::defs
+    ::tsl_async_value_c_interface
+    tsl::async_value
+    absl::base
+    absl::status
+    iree::base
+    iree::vm
+  PUBLIC
+)
+
+iree_cc_library(
+  NAME
+    async
+  HDRS
+    "module.h"
+  TEXTUAL_HDRS
+    "exports.inl"
+  SRCS
+    "module.c"
+  DEPS
+    ::defs
+    ::async_runtime
+    iree::base
+    iree::hal
+    iree::modules::hal
+    iree::vm
+  PUBLIC
+)
+
+iree_cc_test(
+  NAME
+    module_test
+  SRCS
+    "module_test.cpp"
+  DEPS
+    ::defs
+    ::async
+    iree::base
+    iree::base::internal::wait_handle
+    iree::base::loop_sync
+    iree::testing::gtest
+    iree::testing::gtest_main
+    iree::vm
+    iree::vm::bytecode::module
+    openxla::runtime::async::async_test::module_test_module_c
+    openxla::runtime::async::async_test::async_test
+)

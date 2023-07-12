@@ -4,3 +4,9 @@
 [submodule "third_party/triton"]
 	path = third_party/triton
 	url = https://github.com/openai/triton.git
+[submodule "third_party/abseil-cpp"]
+	path = third_party/abseil-cpp
+	url = git@github.com:abseil/abseil-cpp.git
+[submodule "third_party/tsl"]
+	path = third_party/tsl
+	url = git@github.com:google/tsl.git

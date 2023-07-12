@@ -36,6 +36,7 @@ option(OPENXLA_NVGPU_BUILD_COMPILER "Build NVPU compiler components" ON)
 option(OPENXLA_NVGPU_BUILD_RUNTIME "Builds runtime components (can be individually enabled)" ON)
 cmake_dependent_option(OPENXLA_NVGPU_BUILD_RUNTIME_CUDNN "Build NVPU CUDNN runtime components" ON ${OPENXLA_NVGPU_BUILD_RUNTIME} OFF)
 cmake_dependent_option(OPENXLA_NVGPU_BUILD_RUNTIME_TRITON "Build NVGPU Triton runtime components" ON ${OPENXLA_NVGPU_BUILD_RUNTIME} OFF)
+cmake_dependent_option(OPENXLA_ASYNC_BUILD_RUNTIME "Build async runtime components" ON ${OPENXLA_NVGPU_BUILD_RUNTIME} OFF)
 
 option(OPENXLA_NVGPU_INCLUDE_DEVICE_TESTS "Include tests that depend on the device in test targets" ON)
 
@@ -174,13 +175,23 @@ endif()
 add_subdirectory(build_tools/third_party/triton EXCLUDE_FROM_ALL)
 
 #-------------------------------------------------------------------------------
+# Google absl/tsl dependencies
+#-------------------------------------------------------------------------------
+
+if(OPENXLA_ASYNC_BUILD_RUNTIME)
+  add_subdirectory(build_tools/third_party/tsl EXCLUDE_FROM_ALL)
+  add_subdirectory(third_party/abseil-cpp EXCLUDE_FROM_ALL)
+endif()
+
+
+#-------------------------------------------------------------------------------
 # Convenience test target.
 #-------------------------------------------------------------------------------
 
 add_custom_target(openxla-nvgpu-test-deps)
 add_dependencies(openxla-nvgpu-test-deps openxla-nvgpu-iree-deps)
 
-set(OPENXLA_NVGPU_CTEST_ARGS "-L;^openxla/.+/nvgpu")
+set(OPENXLA_NVGPU_CTEST_ARGS "-L;^openxla/.+/(nvgpu|async)")
 if(NOT OPENXLA_NVGPU_INCLUDE_DEVICE_TESTS)
   list(APPEND OPENXLA_NVGPU_CTEST_ARGS "-LE" "driver=cuda")
 endif()
